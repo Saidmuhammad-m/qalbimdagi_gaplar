@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Aziza | Sirli kvest va maktub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 30% 10%, #0e0718, #02010a);
+            font-family: 'Georgia', 'Times New Roman', 'Segoe UI', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ORQA FON ANIMATSIYALARI */
+        .star {
+            position: fixed;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatStar var(--duration) infinite linear;
+        }
+
+        @keyframes floatStar {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .cloud {
+            position: fixed;
+            background: rgba(255,255,255,0.02);
+            border-radius: 100%;
+            filter: blur(40px);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatCloud 40s infinite linear;
+        }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(-20%) translateY(0); opacity: 0; }
+            20% { opacity: 0.3; }
+            80% { opacity: 0.3; }
+            100% { transform: translateX(120%) translateY(-30px); opacity: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: #c09eff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatParticle 15s infinite ease-in-out;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 0.5; transform: translateY(-80px) translateX(40px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 680px;
+            width: 100%;
+            background: rgba(10, 5, 20, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 56px;
+            padding: 30px 24px 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+            border: 1px solid rgba(180, 130, 255, 0.15);
+        }
+
+        /* INTRO */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #02010a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 2000;
+            transition: opacity 2s ease;
+            text-align: center;
+        }
+
+        .intro-line {
+            font-size: 1.8rem;
+            color: #e9d5ff;
+            margin: 10px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+            max-width: 85%;
+        }
+
+        .intro-line.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .quest-card {
+            display: none;
+            animation: cardEnter 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .quest-card.active {
+            display: block;
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: scale(0.96) translateY(20px); filter: blur(4px);}
+            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0);}
+        }
+
+        h2 {
+            font-size: 1.9rem;
+            text-align: center;
+            background: linear-gradient(135deg, #f3e5ff, #d4b5ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .book-icon {
+            text-align: center;
+            font-size: 3.2rem;
+            filter: drop-shadow(0 0 8px #c09eff);
+        }
+
+        .question {
+            font-size: 1.25rem;
+            text-align: center;
+            color: #f2e6ff;
+            margin: 20px 0;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: rgba(255,245,255,0.05);
+            border: 1px solid rgba(200, 160, 255, 0.4);
+            padding: 14px 18px;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #f0e6ff;
+            cursor: pointer;
+            transition: 0.25s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: rgba(180, 130, 255, 0.2);
+            border-color: #bb99ff;
+            transform: scale(1.01);
+        }
+
+        .smart-message {
+            margin-top: 25px;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 32px;
+            border-left: 5px solid #e3aaff;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #ddd0ff;
+            min-height: 100px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hint-text {
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: #b294e0;
+            text-align: center;
+        }
+
+        /* MAKTUB SAHIFASI */
+        .letter-container {
+            text-align: center;
+        }
+
+        .envelope {
+            width: 100%;
+            max-width: 260px;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .envelope:hover {
+            transform: scale(1.02);
+        }
+
+        .envelope svg {
+            width: 100%;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+        }
+
+        .open-letter-btn {
+            background: linear-gradient(135deg, #8b6bbd, #a074d9);
+            border: none;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.2s;
+        }
+
+        .open-letter-btn:hover {
+            transform: scale(1.02);
+            background: #9f7ce0;
+        }
+
+        .letter-content {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 48px;
+            padding: 35px 28px;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* RASM SLAYDER - KETMA-KET 5-6 TA RASM */
+        .photo-slider {
+            text-align: center;
+            margin: 0 0 25px 0;
+            position: relative;
+            min-height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-img {
+            max-width: 85%;
+            max-height: 260px;
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            object-fit: cover;
+            display: none;
+            transition: all 0.5s ease;
+            filter: brightness(0.95) contrast(1.05);
+        }
+
+        .slide-img.active {
+            display: inline-block;
+            animation: fadeSlide 0.8s ease-in-out;
+        }
+
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: scale(0.96); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .slide-img:hover {
+            transform: scale(1.01);
+            filter: brightness(1);
+        }
+
+        .photo-slider::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 100%;
+            background: radial-gradient(ellipse, rgba(160, 120, 255, 0.15), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Slider indikatorlari (rasm soni ko'rinadi) */
+        .slider-dots {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(200, 170, 255, 0.4);
+            margin: 0 5px;
+            transition: 0.3s;
+        }
+
+        .dot.active-dot {
+            background: #c09eff;
+            width: 20px;
+            border-radius: 10px;
+        }
+
+        .letter-line {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #f0e6ff;
+            margin: 12px 0;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.6s ease;
+            text-align: center;
+        }
+
+        .letter-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .heart-decoration {
+            font-size: 2rem;
+            margin: 15px 0;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .custom-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #8b6bbd, #a074d9);
+            color: white;
+            text-decoration: none;
+            padding: 12px 32px;
+            border-radius: 60px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.2s;
+            font-size: 1rem;
+            border: none;
+        }
+
+        .custom-link:hover {
+            transform: scale(1.02);
+            background: #9f7ce0;
+            box-shadow: 0 5px 15px rgba(139, 107, 189, 0.4);
+        }
+
+        .restart-btn {
+            background: #5e4a7a;
+            border: none;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-top: 25px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .restart-btn:hover {
+            background: #7a5f9e;
+        }
+
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(192, 158, 255, 0.5);
+            font-size: 1.4rem;
+            transition: 0.2s;
+        }
+
+        .music-control:hover {
+            background: rgba(100, 70, 150, 0.7);
+            transform: scale(1.05);
+        }
+
+        footer {
+            font-size: 0.7rem;
+            color: #5e4a7a;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 550px) {
+            .container { padding: 20px 18px; }
+            h2 { font-size: 1.6rem; }
+            .intro-line { font-size: 1.3rem; }
+            .letter-line { font-size: 1rem; }
+            .slide-img { max-width: 90%; max-height: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ORQA FON ANIMATSIYALARI -->
+<script>
+    for(let i=0; i<120; i++) {
+        let star = document.createElement('div');
+        star.classList.add('star');
+        let size = Math.random() * 3 + 1;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.setProperty('--duration', (Math.random() * 20 + 15) + 's');
+        star.style.animationDelay = Math.random() * 25 + 's';
+        star.style.opacity = Math.random() * 0.6;
+        document.body.appendChild(star);
+    }
+    for(let i=0; i<6; i++) {
+        let cloud = document.createElement('div');
+        cloud.classList.add('cloud');
+        let size = Math.random() * 250 + 120;
+        cloud.style.width = size + 'px';
+        cloud.style.height = (size * 0.4) + 'px';
+        cloud.style.top = Math.random() * 100 + '%';
+        cloud.style.left = -size + 'px';
+        cloud.style.animationDelay = Math.random() * 20 + 's';
+        cloud.style.animationDuration = (Math.random() * 35 + 30) + 's';
+        document.body.appendChild(cloud);
+    }
+    for(let i=0; i<50; i++) {
+        let particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 12 + 's';
+        particle.style.animationDuration = (Math.random() * 14 + 8) + 's';
+        document.body.appendChild(particle);
+    }
+</script>
+
+<!-- MUSIQA TUGMASI -->
+<div class="music-control" id="musicBtn">🔇</div>
+<audio id="bgMusic" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+    <source src="https://cdn.pixabay.com/download/audio/2022/02/22/audio_d539a6f3a6.mp3" type="audio/mpeg">
+</audio>
+
+<!-- INTRO -->
+<div id="introOverlay" class="intro-overlay">
+    <div class="intro-line" id="intro1">📖 Aziza...</div>
+    <div class="intro-line" id="intro2">Bu sayt oddiy sovg‘a emas</div>
+    <div class="intro-line" id="intro3">Bu yerda kitoblar jonlanadi</div>
+    <div class="intro-line" id="intro4">Va eng muhimi...</div>
+    <div class="intro-line" id="intro5">Oxirida bir qalb maktubi bor ✨</div>
+</div>
+
+<div class="container main-content" id="mainContent">
+    <!-- Kvest 1 -->
+    <div id="quest1" class="quest-card active">
+        <div class="book-icon">📘💜</div>
+        <h2>Binafsha shulasi</h2>
+        <div class="question">Qiz otaxonning sehrli kutubxonasiga tushib, kitoblar ichida bir yigitni uchratadi. Yigit eng ko‘p nima haqida she’r o‘qiydi?</div>
+        <div class="options">
+            <div class="option-btn" data-correct="false">A) Dengiz va kemalar</div>
+            <div class="option-btn" data-correct="true">B) Yo‘qolgan vaqt va uchrashuvlar</div>
+            <div class="option-btn" data-correct="false">C) Yulduzlar va koinot</div>
+            <div class="option-btn" data-correct="false">D) Urush va qahramonlik</div>
+        </div>
+        <div id="smartMsg1" class="smart-message" style="display:none;"></div>
+        <div class="hint-text" id="hint1">🌸 Bu savollarga javob ber, kalitlar yig‘iladi...</div>
+    </div>
+
+    <!-- Kvest 2 -->
+    <div id="quest2" class="quest-card">
+        <div class="book-icon">🕯️✡️</div>
+        <h2>Osvenzim — Tatuirovkachi</h2>
+        <div class="question">Lale va Gita eng qorong‘u kunda bir-biriga nima va’da qiladi?</div>
+        <div class="options">
+            <div class="option-btn" data-correct="false">A) Hech qachon yig‘lamaslik</div>
+            <div class="option-btn" data-correct="true">B) Omon qolish va erkinlikda uchrashish</div>
+            <div class="option-btn" data-correct="false">C) Sirlarini hech kimga aytmaslik</div>
+            <div class="option-btn" data-correct="false">D) Har kecha bir-biriga duo o‘qish</div>
+        </div>
+        <div id="smartMsg2" class="smart-message" style="display:none;"></div>
+        <div class="hint-text" id="hint2">🌹 Bu savollarga javob ber, kalitlar yig‘iladi...</div>
+    </div>
+
+    <!-- Kvest 3 -->
+    <div id="quest3" class="quest-card">
+        <div class="book-icon">💍📖</div>
+        <h2>G'urur va Kibr</h2>
+        <div class="question">Elizabet birinchi marta Darcy haqida eng katta xatosi nimada edi?</div>
+        <div class="options">
+            <div class="option-btn" data-correct="false">A) Uni juda kamtar deb o‘ylagan</div>
+            <div class="option-btn" data-correct="true">B) Uni faqat mag‘rur va sovuq deb bilgan, ichki olijanobligini ko‘rmagan</div>
+            <div class="option-btn" data-correct="false">C) Uni boy emas deb o‘ylagan</div>
+            <div class="option-btn" data-correct="false">D) Uni noto‘g‘ri gapiruvchi deb bilgan</div>
+        </div>
+        <div id="smartMsg3" class="smart-message" style="display:none;"></div>
+        <div class="hint-text" id="hint3">✨ Bu savollarga javob ber, kalitlar yig‘iladi...</div>
+    </div>
+
+    <!-- MAKTUB SAHIFASI (RASM SLAYDER BILAN) -->
+    <div id="letterPage" class="quest-card">
+        <div class="letter-container">
+            <div class="heart-decoration">💜</div>
+            <h2>Bir xat...</h2>
+            <div class="envelope" id="envelopeIcon">
+                <svg viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="90" height="60" rx="8" fill="#d4b5ff" stroke="#a074d9" stroke-width="2"/>
+                    <polygon points="5,5 50,40 95,5" fill="#e3ccff" stroke="#a074d9" stroke-width="1.5"/>
+                    <rect x="5" y="5" width="90" height="60" rx="8" fill="none" stroke="#c09eff" stroke-width="1"/>
+                </svg>
+            </div>
+            <button class="open-letter-btn" id="openLetterBtn">📩 Xatni ochish</button>
+            <div id="letterContent" class="letter-content">
+                <!-- RASM SLAYDER - 6 TA RASM UCHUN JOY -->
+                <div class="photo-slider" id="photoSlider">
+                    <img class="slide-img" src="rasm1.jpg" alt="Rasm 1" onerror="this.style.display='none'">
+                    <img class="slide-img" src="rasm2.jpg" alt="Rasm 2" onerror="this.style.display='none'">
+                    <img class="slide-img" src="rasm3.jpg" alt="Rasm 3" onerror="this.style.display='none'">
+                    <img class="slide-img" src="rasm4.jpg" alt="Rasm 4" onerror="this.style.display='none'">
+                    <img class="slide-img" src="rasm5.jpg" alt="Rasm 5" onerror="this.style.display='none'">
+                    <img class="slide-img" src="rasm6.jpg" alt="Rasm 6" onerror="this.style.display='none'">
+                </div>
+                <div class="slider-dots" id="sliderDots"></div>
+
+                <div class="letter-line" id="line1"></div>
+                <div class="letter-line" id="line2"></div>
+                <div class="letter-line" id="line3"></div>
+                <div class="letter-line" id="line4"></div>
+                <div class="letter-line" id="line5"></div>
+                <div class="letter-line" id="line6"></div>
+                <div class="letter-line" id="line7"></div>
+                <div class="letter-line" id="line8"></div>
+                <div style="margin-top: 25px;">
+                    <a href="https://instagram.com/_saidmuxammad" class="custom-link" target="_blank">💌 Menga bir so'z yoz</a>
+                </div>
+                <button class="restart-btn" id="restartBtn">🔄 Boshidan o‘qish</button>
+            </div>
+        </div>
+        <footer>Har bir to‘g‘ri javob — bir qadam yaqinlashish</footer>
+    </div>
+</div>
+
+<script>
+    // ========== MUSIQA ==========
+    const music = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicBtn');
+    let musicPlaying = false;
+
+    music.volume = 0.4;
+    musicBtn.addEventListener('click', () => {
+        if(musicPlaying) {
+            music.pause();
+            musicBtn.innerHTML = '🔇';
+        } else {
+            music.play().catch(e => console.log('Musiqa avtomatik boshlanmadi'));
+            musicBtn.innerHTML = '🎵';
+        }
+        musicPlaying = !musicPlaying;
+    });
+
+    // ========== INTRO ==========
+    const introLines = ['intro1','intro2','intro3','intro4','intro5'];
+    let idx = 0;
+    function showNextLine() {
+        if(idx < introLines.length) {
+            const line = document.getElementById(introLines[idx]);
+            if(line) line.classList.add('show');
+            idx++;
+            setTimeout(showNextLine, 2100);
+        } else {
+            setTimeout(() => {
+                const introDiv = document.getElementById('introOverlay');
+                introDiv.style.opacity = '0';
+                setTimeout(() => {
+                    introDiv.style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    setTimeout(() => {
+                        music.play().catch(e => {});
+                        musicPlaying = true;
+                        musicBtn.innerHTML = '🎵';
+                    }, 500);
+                }, 1600);
+            }, 1000);
+        }
+    }
+    showNextLine();
+
+    // ========== TYPING ==========
+    async function typeText(element, text, speed = 30) {
+        element.innerHTML = '';
+        element.style.display = 'block';
+        for(let i = 0; i < text.length; i++) {
+            element.innerHTML += text.charAt(i);
+            await new Promise(r => setTimeout(r, speed));
+        }
+    }
+
+    // ========== QUEST ==========
+    const q1 = document.getElementById('quest1');
+    const q2 = document.getElementById('quest2');
+    const q3 = document.getElementById('quest3');
+    const letterPage = document.getElementById('letterPage');
+
+    function showQuest(num) {
+        q1.classList.remove('active');
+        q2.classList.remove('active');
+        q3.classList.remove('active');
+        letterPage.classList.remove('active');
+        if(num===1) q1.classList.add('active');
+        if(num===2) q2.classList.add('active');
+        if(num===3) q3.classList.add('active');
+        if(num===4) letterPage.classList.add('active');
+    }
+
+    const wisdom = {
+        1: "💜 “Binafsha shulasi” — Qiz kitob ichiga tushadi, bir yigitni uchratadi. U yo‘qolgan vaqt va uchrashuvlar haqida she’r yozadi. Chunki sevgi — kutubxonalarda yashiringan sir.",
+        2: "🕯️ “Tatuirovkachi” — Lale va Gita. Ularning va’dasi omon qolish va erkinlikda uchrashish edi. Bu hikoya haqiqiy sevgi hatto eng qorong‘u joyda ham gullashini ko‘rsatadi.",
+        3: "💭 “G‘urur va Kibr” — Elizabet dastlab Darcyni noto‘g‘ri hukm qiladi. Chunki g‘urur ko‘zni to‘sadi. Haqiqiy sevgi — xatolarni tan olish va tushunishdan boshlanadi."
+    };
+
+    async function attachSmart(questDiv, nextNum, msgId, hintId) {
+        const btns = questDiv.querySelectorAll('.option-btn');
+        for(let btn of btns) {
+            btn.addEventListener('click', async function(e) {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const msgBox = document.getElementById(msgId);
+                const hintSpan = document.getElementById(hintId);
+                if(isCorrect) {
+                    btns.forEach(b => b.style.pointerEvents = 'none');
+                    let text = "";
+                    if(msgId === 'smartMsg1') text = wisdom[1];
+                    if(msgId === 'smartMsg2') text = wisdom[2];
+                    if(msgId === 'smartMsg3') text = wisdom[3];
+                    await typeText(msgBox, text, 30);
+                    setTimeout(() => {
+                        showQuest(nextNum);
+                    }, 3200);
+                } else {
+                    if(hintSpan) {
+                        const orig = hintSpan.innerHTML;
+                        hintSpan.innerHTML = "❌ Noto‘g‘ri. " + orig;
+                        setTimeout(() => { hintSpan.innerHTML = orig; }, 1700);
+                    }
+                }
+            });
+        }
+    }
+
+    attachSmart(q1, 2, 'smartMsg1', 'hint1');
+    attachSmart(q2, 3, 'smartMsg2', 'hint2');
+    attachSmart(q3, 4, 'smartMsg3', 'hint3');
+
+    // ========== RASM SLAYDER (KETMA-KET 5-6 TA RASM) ==========
+    let slideInterval = null;
+    let currentSlide = 0;
+    let slides = [];
+    let dots = [];
+
+    function initSlider() {
+        slides = Array.from(document.querySelectorAll('.slide-img'));
+        if(slides.length === 0) return;
+
+        // Mavjud rasmlarni aniqlash (faqat yuklanganlar)
+        let validSlides = [];
+        for(let i = 0; i < slides.length; i++) {
+            const img = slides[i];
+            if(img.complete && img.naturalWidth !== 0) {
+                validSlides.push(img);
+            } else {
+                // Rasmni tekshirish
+                img.onload = () => {
+                    validSlides.push(img);
+                    if(validSlides.length === 1 && currentSlide === 0) {
+                        showSlide(0);
+                    }
+                };
+            }
+        }
+
+        // Darhol ko'rinadigan rasmlar
+        setTimeout(() => {
+            let finalSlides = [];
+            for(let i = 0; i < slides.length; i++) {
+                if(slides[i].naturalWidth !== 0 || slides[i].src.includes('blob')) {
+                    finalSlides.push(slides[i]);
+                }
+            }
+            if(finalSlides.length > 0) {
+                slides = finalSlides;
+                showSlide(0);
+                startSlider();
+            }
+        }, 200);
+    }
+
+    function showSlide(index) {
+        if(slides.length === 0) return;
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+        });
+        currentSlide = (index + slides.length) % slides.length;
+        slides[currentSlide].classList.add('active');
+        updateDots();
+    }
+
+    function nextSlide() {
+        if(slides.length === 0) return;
+        showSlide(currentSlide + 1);
+    }
+
+    function startSlider() {
+        if(slideInterval) clearInterval(slideInterval);
+        slideInterval = setInterval(() => {
+            nextSlide();
+        }, 5000); // har 5 soniyada o'zgaradi
+    }
+
+    function stopSlider() {
+        if(slideInterval) {
+            clearInterval(slideInterval);
+            slideInterval = null;
+        }
+    }
+
+    function updateDots() {
+        const dotsContainer = document.getElementById('sliderDots');
+        if(!dotsContainer) return;
+        dotsContainer.innerHTML = '';
+        for(let i = 0; i < slides.length; i++) {
+            const dot = document.createElement('span');
+            dot.classList.add('dot');
+            if(i === currentSlide) dot.classList.add('active-dot');
+            dot.addEventListener('click', () => {
+                stopSlider();
+                showSlide(i);
+                startSlider();
+            });
+            dotsContainer.appendChild(dot);
+        }
+    }
+
+    // ========== MAKTUB ==========
+    const heartLines = [
+        "Aziza...",
+        "Men senga hech qachon aytmagan bir narsani bugun yozyapman.",
+        "Seni tinglagan har bir daqiqam — umrimning eng chiroyli qismi.",
+        "Qani edi umrimni oxirigacha seni tinglasam...",
+        "Hatto jim bo‘lganingda ham, hatto meni tushunmaganingda ham.",
+        "Men oddiy emasman. Sen ham. Shuning uchun bu saytni yasadim.",
+        "Va bil, sen o‘qigan har bir kitob — men senga bir qadam yaqinlashish yo‘limdir.",
+        "Seni qadrlayman. 💜"
+    ];
+
+    const openBtn = document.getElementById('openLetterBtn');
+    const letterContentDiv = document.getElementById('letterContent');
+    const envelopeIcon = document.getElementById('envelopeIcon');
+
+    async function animateLetterLines() {
+        letterContentDiv.style.display = 'block';
+        // Slayderni ishga tushirish
+        initSlider();
+
+        for(let i = 0; i < heartLines.length; i++) {
+            const lineDiv = document.getElementById(`line${i+1}`);
+            if(lineDiv) {
+                await typeText(lineDiv, heartLines[i], 35);
+                lineDiv.classList.add('visible');
+                await new Promise(r => setTimeout(r, 600));
+            }
+        }
+    }
+
+    openBtn.addEventListener('click', () => {
+        openBtn.style.display = 'none';
+        envelopeIcon.style.opacity = '0.5';
+        animateLetterLines();
+    });
+
+    // RESTART
+    const restartBtn = document.getElementById('restartBtn');
+    if(restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            showQuest(1);
+            letterContentDiv.style.display = 'none';
+            openBtn.style.display = 'block';
+            envelopeIcon.style.opacity = '1';
+            stopSlider();
+            for(let i=1; i<=8; i++) {
+                const ln = document.getElementById(`line${i}`);
+                if(ln) {
+                    ln.innerHTML = '';
+                    ln.classList.remove('visible');
+                }
+            }
+            document.getElementById('smartMsg1').style.display = 'none';
+            document.getElementById('smartMsg2').style.display = 'none';
+            document.getElementById('smartMsg3').style.display = 'none';
+            document.getElementById('smartMsg1').innerHTML = '';
+            document.getElementById('smartMsg2').innerHTML = '';
+            document.getElementById('smartMsg3').innerHTML = '';
+            location.reload();
+        });
+    }
+</script>
+</body>
+</html>
